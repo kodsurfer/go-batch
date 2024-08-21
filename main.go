@@ -13,7 +13,7 @@ import (
 type ExternalSystemClient struct{}
 
 // SendBatch отправляет группу запросов во внешнюю систему.
-func (c *ExternalSystemClient) SendBatch(ctx context.Context, requests []BatchRequest) ([]BatchResponse, error) {
+func (c *ExternalSystemClient) SendBatch(requests []BatchRequest) ([]BatchResponse, error) {
 	// Симуляция нестабильной работы внешней системы.
 	if len(requests) > 2 {
 		return nil, errors.New("external system error")
@@ -105,7 +105,7 @@ func (s *ProxyService) flushBatch() {
 		return
 	}
 
-	batch := []BatchRequest{}
+	var batch []BatchRequest
 	for i := 0; i < len(s.batch); i++ {
 		select {
 		case item := <-s.batch:
@@ -125,7 +125,7 @@ func (s *ProxyService) sendBatch(ctx context.Context, batch []BatchRequest, resp
 	var err error
 
 	for attempt := 0; attempt < 3; attempt++ {
-		responses, err = s.client.SendBatch(ctx, batch)
+		responses, err = s.client.SendBatch(batch)
 		if err == nil {
 			break
 		}
